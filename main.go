@@ -5,7 +5,10 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
+
 	"github.com/jackpal/gateway"
+	"github.com/sparrc/go-ping"
 )
 
 func main() {
@@ -27,9 +30,9 @@ func main() {
 		addrs, netErr := net.LookupHost(site)
 
 		if netErr != nil {
-			fmt.Printf("%d. Could not resolve %s and therefore it will be ignored.\n", i + 1, site)
+			fmt.Printf("%d. Could not resolve %s and therefore it will be ignored.\n", i+1, site)
 		} else {
-			fmt.Printf("%d. Resolved %s to %s\n", i + 1, site, strings.Join(addrs, ", "))
+			fmt.Printf("%d. Resolved %s to %s\n", i+1, site, strings.Join(addrs, ", "))
 			valid = append(valid, site)
 		}
 	}
@@ -44,8 +47,19 @@ func main() {
 			fmt.Println("Cannot resolve default external site (google.com), exiting...")
 			os.Exit(1)
 		}
-
-		fmt.Println("Default site resolved, pinging default gateway and the default site.")
-		valid = []string{"google.com"}
 	}
+
+	fmt.Println("Default site resolved, pinging default gateway and the default site.")
+	valid = []string{"google.com"}
+
+	dgPing, dgErr := ping.NewPinger(dg.String())
+
+	if dgErr != nil {
+		fmt.Printf("Error creating DG ping: %s", dgErr)
+		os.Exit(1)
+	}
+
+	dgPing.SetPrivileged(true)
+	dgPing.Interval = time.Second
+	dgPing.Count = -1
 }
