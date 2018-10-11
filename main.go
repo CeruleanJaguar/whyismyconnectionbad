@@ -86,7 +86,7 @@ func end(ns []string, ps []*ping.Pinger) {
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "\nPing test your default gateway and sites you specify. If none are specified, `google.com` is the default\nUsage:\n\t%s [-help] [addrs...]\n\tAddresses should not have a protocol prefix.\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "\nPing test your default gateway and sites you specify. If none are specified, `google.com` is the default\n\nUsage:\n\t%s [-help] [addrs...]\nAddresses should not have a protocol prefix.\n\nFlags:\n", os.Args[0])
 		flag.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "\n")
 	}
