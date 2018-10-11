@@ -43,23 +43,23 @@ func printfTb(x, y int, fg, bg termbox.Attribute, format string, args ...interfa
 
 func printStats(x, y int, name string, s *ping.Statistics) {
 	printfTb(
-		x, y+2, termbox.ColorDefault, termbox.ColorDefault,
+		x, y+2, termbox.ColorWhite, termbox.ColorBlack,
 		"Statistics for %s (%d packets sent):",
 		name, s.PacketsSent)
 	printfTb(
-		x+2, y+3, termbox.ColorDefault, termbox.ColorDefault,
+		x+2, y+3, termbox.ColorWhite, termbox.ColorBlack,
 		"- Packet Loss: %v%%", s.PacketLoss)
 	printfTb(
-		x+2, y+4, termbox.ColorDefault, termbox.ColorDefault,
+		x+2, y+4, termbox.ColorWhite, termbox.ColorBlack,
 		"- Avg. RTT (ms): %v", s.AvgRtt)
 	printfTb(
-		x+2, y+5, termbox.ColorDefault, termbox.ColorDefault,
+		x+2, y+5, termbox.ColorWhite, termbox.ColorBlack,
 		"- Min. RTT (ms): %v", s.MinRtt)
 	printfTb(
-		x+2, y+6, termbox.ColorDefault, termbox.ColorDefault,
+		x+2, y+6, termbox.ColorWhite, termbox.ColorBlack,
 		"- Max. RTT (ms): %v", s.MaxRtt)
 	printfTb(
-		x+2, y+7, termbox.ColorDefault, termbox.ColorDefault,
+		x+2, y+7, termbox.ColorWhite, termbox.ColorBlack,
 		"- Std. Dev. RTT (ms): %v", s.StdDevRtt)
 }
 
@@ -93,17 +93,20 @@ func main() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	tbLine := 0
-	printTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "Attempting to resolve the default gateway...")
+	printTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Attempting to resolve the default gateway...")
+	termbox.Flush()
 	tbLine++
 
 	dg, gatewayErr := gateway.DiscoverGateway()
 
 	if gatewayErr != nil {
-		printfTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "Could not resolve gateway: %s", gatewayErr)
+		printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Could not resolve gateway: %s", gatewayErr)
+		termbox.Flush()
 		os.Exit(1)
 	}
 
-	printfTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "Default gateway resolved to %s", dg.String())
+	printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Default gateway resolved to %s", dg.String())
+	termbox.Flush()
 	tbLine++
 
 	sites := flag.Args()
@@ -113,47 +116,55 @@ func main() {
 		addrs, netErr := net.LookupHost(site)
 
 		if netErr != nil {
-			printfTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "%d. Could not resolve %s and therefore it will be ignored.", i+1, site)
+			printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "%d. Could not resolve %s and therefore it will be ignored.", i+1, site)
+			termbox.Flush()
 			tbLine++
 		} else {
-			printfTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "%d. Resolved %s to %s", i+1, site, strings.Join(addrs, ", "))
+			printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "%d. Resolved %s to %s", i+1, site, strings.Join(addrs, ", "))
+			termbox.Flush()
 			tbLine++
 			valid = append(valid, site)
 		}
 	}
 
 	if len(valid) > 0 {
-		printTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "Pinging default gateway and the following sites: ->")
+		printTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Pinging default gateway and the following sites: ->")
+		termbox.Flush()
 		tbLine++
 		for _, name := range valid {
-			printfTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, " -> %s", name)
+			printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, " -> %s", name)
+			termbox.Flush()
 			tbLine++
 		}
 	} else {
-		printTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "No valid sites specified, trying default external site (google.com)...")
+		printTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "No valid sites specified, trying default external site (google.com)...")
+		termbox.Flush()
 		tbLine++
 		_, netErr := net.LookupHost("google.com")
 
 		if netErr != nil {
-			printfTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "Cannot resolve default external site (google.com), exiting...")
+			printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Cannot resolve default external site (google.com), exiting...")
+			termbox.Flush()
 			tbLine++
 			os.Exit(1)
 		}
 
-		fmt.Println("Default site resolved, pinging default gateway and the default site.")
+		printTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Default site resolved, pinging default gateway and the default site.")
+		termbox.Flush()
 		tbLine++
 		valid = []string{"google.com"}
 	}
 
 	if dgPing, dgPErr := runPing(dg.String()); dgPErr != nil {
-		printfTb(0, tbLine, termbox.ColorDefault, termbox.ColorDefault, "Couldn't set up pinger for the Default Gateway: `%s` - Exiting...", dgPErr)
+		printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Couldn't set up pinger for the Default Gateway: `%s` - Exiting...", dgPErr)
 		tbLine++
 		os.Exit(1)
 	} else {
 		pingers := []*ping.Pinger{dgPing}
 		for _, site := range valid {
 			if p, err := runPing(site); err != nil {
-				printfTb(0, 0, termbox.ColorDefault, termbox.ColorDefault, "Couldn't set up pinger for %s: `%s` - Exiting...", site, err)
+				printfTb(0, 0, termbox.ColorWhite, termbox.ColorBlack, "Couldn't set up pinger for %s: `%s` - Exiting...", site, err)
+				termbox.Flush()
 				tbLine++
 				os.Exit(1)
 			} else {
@@ -166,12 +177,13 @@ func main() {
 		defer end(valid, pingers)
 
 		reportStats := func() {
-			// termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-			printTb(0, 0, termbox.ColorDefault, termbox.ColorDefault, "Press space to freeze stats, Ctrl+C to end...")
+			termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+			printTb(0, 0, termbox.ColorWhite, termbox.ColorBlack, "Press space to freeze stats, Ctrl+C to end...")
 
 			for i, pinger := range pingers {
-				printStats(7*i+2, 0, valid[i], pinger.Statistics())
+				printStats(0, 7*i+2, valid[i], pinger.Statistics())
 			}
+			termbox.Flush()
 		}
 
 		frozen, exit := false, false
