@@ -79,12 +79,27 @@ func end(ns []string, ps []*ping.Pinger) {
 	for i, p := range ps {
 		name, s := ns[i], p.Statistics()
 		fmt.Printf(
-			"\n\nStatistics for %s (%d packets sent):\n\t- Packet Loss: %v%%\n\t- Avg. RTT (ms): %v\n\t- Min. RTT (ms): %v\n\t- Max. RTT (ms): %v\n\t- Std. Dev. RTT (ms): %v\n",
-			name, s.PacketsSent, s.PacketLoss, s.AvgRtt, s.MinRtt, s.MaxRtt, s.StdDevRtt)
+			"\n\nStatistics for %s (%d packets sent):\n\t- Packet Loss: %v%% (%v packets)\n\t- Avg. RTT (ms): %v\n\t- Min. RTT (ms): %v\n\t- Max. RTT (ms): %v\n\t- Std. Dev. RTT (ms): %v\n",
+			name, s.PacketsSent, s.PacketLoss, s.PacketsSent - s.PacketsRecv, s.AvgRtt, s.MinRtt, s.MaxRtt, s.StdDevRtt)
 	}
 }
 
 func main() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "\nUsage:\n\t%s [-help] [addrs...]\n\n", os.Args[0])
+		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "\n")
+	}
+
+	help := flag.Bool("help", false, "Shows the help dialogue")
+
+	flag.Parse()
+
+	if *help {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	tbErr := termbox.Init()
 	if tbErr != nil {
 		fmt.Println(tbErr)
@@ -128,7 +143,7 @@ func main() {
 	}
 
 	if len(valid) > 0 {
-		printTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Pinging default gateway and the following sites: ->")
+		printTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Pinging default gateway and the following sites:")
 		termbox.Flush()
 		tbLine++
 		for _, name := range valid {
@@ -155,6 +170,24 @@ func main() {
 		valid = []string{"google.com"}
 	}
 
+	printTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Press Enter to start!")
+	termbox.Flush()
+	tbLine++
+
+startupLoop:
+	for {
+		switch ev := termbox.PollEvent(); ev.Type {
+		case termbox.EventKey:
+			if ev.Key == termbox.KeyEnter {
+				break startupLoop
+			}
+		case termbox.EventError:
+			defer fmt.Printf("Termbox encountered an error: %s", ev.Err)
+			os.Exit(1)
+			break startupLoop
+		}
+	}
+
 	if dgPing, dgPErr := runPing(dg.String()); dgPErr != nil {
 		printfTb(0, tbLine, termbox.ColorWhite, termbox.ColorBlack, "Couldn't set up pinger for the Default Gateway: `%s` - Exiting...", dgPErr)
 		tbLine++
@@ -171,7 +204,7 @@ func main() {
 				pingers = append(pingers, p)
 			}
 		}
-		
+
 		dgName := fmt.Sprintf("Default Gateway (%s)", dg.String())
 		valid = append([]string{dgName}, valid...)
 		defer end(valid, pingers)
