@@ -7,3 +7,5 @@ Usage:
 ```bash
 whyismyconnectionbad [--help] [addrs...]
 ```
+
+Addresses should not have a protocol prefix.

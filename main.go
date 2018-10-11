@@ -80,13 +80,13 @@ func end(ns []string, ps []*ping.Pinger) {
 		name, s := ns[i], p.Statistics()
 		fmt.Printf(
 			"\n\nStatistics for %s (%d packets sent):\n\t- Packet Loss: %v%% (%v packets)\n\t- Avg. RTT (ms): %v\n\t- Min. RTT (ms): %v\n\t- Max. RTT (ms): %v\n\t- Std. Dev. RTT (ms): %v\n",
-			name, s.PacketsSent, s.PacketLoss, s.PacketsSent - s.PacketsRecv, s.AvgRtt, s.MinRtt, s.MaxRtt, s.StdDevRtt)
+			name, s.PacketsSent, s.PacketLoss, s.PacketsSent-s.PacketsRecv, s.AvgRtt, s.MinRtt, s.MaxRtt, s.StdDevRtt)
 	}
 }
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "\nUsage:\n\t%s [-help] [addrs...]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "\nPing test your default gateway and sites you specify. If none are specified, `google.com` is the default\nUsage:\n\t%s [-help] [addrs...]\n\tAddresses should not have a protocol prefix.\n\n", os.Args[0])
 		flag.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "\n")
 	}
